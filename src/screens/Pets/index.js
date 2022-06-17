@@ -3,6 +3,8 @@ import React from "react";
 import PetCard from '../../Components/PetCard'
 import DropDownPicker from 'react-native-simple-dropdown-picker';
 import { FlatList, View, Text } from 'react-native';
+import { vh } from "../../utils/Units";
+import { ActivityIndicator } from 'react-native';
 
 class Pets extends React.Component {
 
@@ -11,7 +13,9 @@ class Pets extends React.Component {
         this.state = {
             accessToekn: '',
             petData: [],
-            value: ''
+            ppetDataCopy: [],
+            value: '',
+            showLoading : true
 
 
         };
@@ -57,7 +61,9 @@ class Pets extends React.Component {
         )
         const myPets = await petData.json();
         this.setState({
-            petData: myPets
+            petData: myPets,
+            ppetDataCopy: myPets,
+            showLoading:false
         })
     }
     _renderItem = (item) => {
@@ -66,20 +72,29 @@ class Pets extends React.Component {
     };
     filterDate = () => {
 
-        let filterFlag = ''
-        console.log('1111', this.state.value)
-        if (this.state.value == 'species_id_1') {
-            filterFlag = '1'
-        }
-        else {
-            filterFlag = '2'
+        this.setState({
+            petData: this.state.ppetDataCopy,
+            showLoading:true
+        }, () => {
 
-        }
+            let filterFlag = ''
+            if (this.state.value == 'species_id_1') {
+                filterFlag = '1'
+            }
+            else {
+                filterFlag = '2'
+            }
 
+            let filteredPetData = this.state.petData.filter(value => { return value.species_id == filterFlag })
+            this.setState({
+                petData: filteredPetData,
+                showLoading:false
+            })
 
-
-        console.log('important', this.state.petData.filter(value => { return value.species_id == filterFlag }))
+        })
     }
+
+    //for the filter part, there was no sex parameter in the response so I just made filteration using specie id
     _filteredData = () => {
 
         const data = ['species_id_1', 'species_id_2'];
@@ -89,7 +104,7 @@ class Pets extends React.Component {
                 setResult={data => this.setState({
                     value: data
                 }, this.filterDate())}
-                // setResult={date1 => console.log('dada',date1)}
+
                 data={data}
                 placeholder={'Choose an option'}
             />
@@ -99,13 +114,13 @@ class Pets extends React.Component {
     }
 
     render() {
-        return <View style={{ backgroundColor: '#fff', flex: 1 }}>
-            {this._filteredData()}
+        return <View style={{ backgroundColor: '#fff', flex: 1, paddingVertical: 3 * vh }}>
+           {this.state.showLoading ? <ActivityIndicator size='large' color='green'  />  :<>{this._filteredData()}
             <FlatList
                 data={this.state.petData}
                 renderItem={this._renderItem}
 
-            />
+            /></>}
         </View>
     }
 
